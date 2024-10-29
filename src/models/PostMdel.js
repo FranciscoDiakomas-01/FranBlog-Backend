@@ -7,25 +7,16 @@ export default class Post {
   #values = [];
   createPost(post) {
     return new Promise((resolve, reject) => {
-      if (!post.title.length <= 1 && typeof post.categoryId == "number") {
+      if (post.title.length >= 2 && !isNaN(post.categoryId)) {
         //verificando se existe uma categoria com esse id
-
-        this.#querySql = "select id from categoryPost where id = ?";
+        this.#querySql = "select id , status from categoryPost where id = ?";
         db.query(this.#querySql, [post.categoryId], (err, result) => {
           if (err) {
             reject(err);
           } else {
-            if (result[0]?.id) {
-              this.querySql =
-                "insert into post(title, description , categoryId ,cover , created_at , status) value(?);";
-              this.#values = [
-                post.title,
-                post.description,
-                post.categoryId,
-                post.cover,
-                (post.created_at = new Date().toLocaleDateString()),
-                (post.status = "1"),
-              ];
+            if (result[0]?.id != 0 && result[0]?.status == 1) {
+              this.querySql ="insert into post(title, description , categoryId ,cover , created_at , status) value(?);";
+              this.#values = [post.title,post.description,post.categoryId,post.file,post.created_at = new Date().toLocaleDateString("pt-BR"),post.status = 1,];
               db.query(this.querySql, [this.#values], (err, result) => {
                 if (err) {
                   if (err.message.includes("Duplicate entry")) {
@@ -37,7 +28,7 @@ export default class Post {
                 }
               });
             } else {
-              reject("category not found");
+              reject("category not found or is not active");
             }
           }
         });
@@ -113,13 +104,14 @@ export default class Post {
   }
   getAllPost() {
     return new Promise((resolve, reject) => {
-      this.querySql =
-        "select post.id as postId ,post.title as postTitle , post.cover , post.description as text, post.created_at as date , post.status , categorypost.title CategoryTitle , categorypost.id CategoryId from post join categorypost on post.categoryId = categorypost.id;";
+      this.querySql ="select post.id as postId ,post.title as postTitle , post.cover , post.description as text, post.created_at as date , post.status , categorypost.title CategoryTitle , categorypost.id CategoryId from post join categorypost on post.categoryId = categorypost.id;";
       db.query(this.querySql, (err, result) => {
         if (err) {
           reject(err.message);
+        } else if (result.length <= 0) {
+          reject("not found")
         } else {
-          resolve(result.length > 0 ? result : "not found");
+          resolve(result);
         }
       });
     });

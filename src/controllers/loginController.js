@@ -10,8 +10,7 @@ const logginController = {
             try {
                 //validação do emaile da pass
                 if (validator.isEmail(email) && pass.length >= 6) {
-                    const sqlQuery = "select * from user where email = ? and pass = ? limit 1;";
-                    const value = [email, pass];
+                  const sqlQuery = "select * from user where email = ? and pass = ? limit 1;";
                   db.query(sqlQuery, [email, pass], async (err, result) => {
                     if (err) {
                       console.log(err);
