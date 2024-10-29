@@ -112,8 +112,9 @@ export default class Post {
     });
   }
   getAllPost() {
-    return new Promise((resolve, reject) => {this.querySql =
-      "select post.id as postId ,post.title as postTitle , post.cover , post.description as text, post.created_at as date , post.status , categorypost.title CategoryTitle , categorypost.id CategoryId from post join categorypost on post.categoryId = categorypost.id;";
+    return new Promise((resolve, reject) => {
+      this.querySql =
+        "select post.id as postId ,post.title as postTitle , post.cover , post.description as text, post.created_at as date , post.status , categorypost.title CategoryTitle , categorypost.id CategoryId from post join categorypost on post.categoryId = categorypost.id;";
       db.query(this.querySql, (err, result) => {
         if (err) {
           reject(err.message);
@@ -137,6 +138,19 @@ export default class Post {
       } else {
         reject("invalid userId");
       }
+    });
+  }
+  countPost() {
+    return new Promise((resolve, reject) => {
+        this.querySql = "select count(*) as total from post;";
+        db.query(this.querySql, (err, result) => {
+          if (err) {
+            reject(err.message);
+          } else {
+            resolve(result.total);
+          }
+        });
+      
     });
   }
 }

@@ -12,8 +12,8 @@ export default class CategoryPost {
         this.#values = [
           category.title,
           category.description,
-          category.created_at = date,
-          category.status = 1,
+          (category.created_at = date),
+          (category.status = 1),
         ];
         db.query(this.querySql, [this.#values], (err, result) => {
           if (err) {
@@ -33,7 +33,8 @@ export default class CategoryPost {
   updateCategory(category) {
     return new Promise((resolve, reject) => {
       if (category.title.length > 2) {
-        this.querySql ="update categoryPost set title = ?, description = ? , status = ? where id = ? limit 1;";
+        this.querySql =
+          "update categoryPost set title = ?, description = ? , status = ? where id = ? limit 1;";
         db.query(
           this.querySql,
           [category.title, category.description, category.status, category.id],
@@ -44,7 +45,7 @@ export default class CategoryPost {
               }
               reject(err.message);
             } else {
-              resolve(result.affectedRows > 0 ? 'updated' : 'not found');
+              resolve(result.affectedRows > 0 ? "updated" : "not found");
             }
           }
         );
@@ -57,51 +58,50 @@ export default class CategoryPost {
     return new Promise((resolve, reject) => {
       //total Post , Comment, APt E N
       if (typeof categoryId == "number" && categoryId > 0) {
-
         //pegando os dados da categoria
         this.querySql = "select * from categoryPost where id = ?;";
         db.query(this.querySql, [categoryId], (err, result) => {
           if (err) {
             reject(err);
           } else {
-            
             const categoryData = result.length > 0 ? result : "not found";
-            if (categoryData === 'not found') {
-              reject('not found')
+            if (categoryData === "not found") {
+              reject("not found");
             } else {
-              
               //pegando o número de post dessa categoria
-              this.querySql = "select count(*) as totalPost from post where categoryId = ?;";
+              this.querySql =
+                "select count(*) as totalPost from post where categoryId = ?;";
               db.query(this.querySql, [categoryId], (err, result) => {
                 if (err) {
                   reject(err);
                 } else {
-                  
-                  const totalCategory = result.length > 0 ? result[0].total : "not found";
+                  const totalCategory =
+                    result.length > 0 ? result[0].total : "not found";
                   if (totalCategory === "not found") {
-                    reject('not found post')
+                    reject("not found post");
                   } else {
                     //pegando o total de post / categoria / estado / apto ou não apto
-                    this.querySql ="select count(*) as total from post where categoryId = ? group by status ;";
+                    this.querySql =
+                      "select count(*) as total from post where categoryId = ? group by status ;";
                     db.query(this.querySql, [categoryId], (err, result) => {
                       if (err) {
                         reject(err);
                       } else {
-                        const postPerCategory = result.length > 0 ? result[0] : "not found";
-                        if (postPerCategory == 'not found') {
-                          reject('not found')
+                        const postPerCategory =
+                          result.length > 0 ? result[0] : "not found";
+                        if (postPerCategory == "not found") {
+                          reject("not found");
                         } else {
                           const result = {
-                            totalCategory : totalCategory,
-                            postPerCategory : postPerCategory,
-                            categoryData : categoryData,
+                            totalCategory: totalCategory,
+                            postPerCategory: postPerCategory,
+                            categoryData: categoryData,
                           };
-                          resolve(result)
+                          resolve(result);
                         }
                       }
                     });
                   }
-                    
                 }
               });
             }
@@ -140,20 +140,16 @@ export default class CategoryPost {
       }
     });
   }
+  countCategoryPost() {
+    return new Promise((resolve, reject) => {
+      this.querySql = "select count(*) as total from categoryPost;";
+      db.query(this.querySql, (err, result) => {
+        if (err) {
+          reject(err.message);
+        } else {
+          resolve(result.total);
+        }
+      });
+    });
+  }
 }
-
-
-let category = new CategoryPost()
-
-let data = {
-  title: 'Dev Web',
-  description: 'Desencolvimento de Software',
-  status: '0',
-  id : 1
-}
-
-category.createCatgoryPost(data).then(result => {
-  console.log(result)
-}).catch(err => {
-  console.log(err)
-})
