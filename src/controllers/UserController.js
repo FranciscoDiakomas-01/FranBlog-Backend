@@ -9,15 +9,12 @@ const userController = {
     const userBody = {
       name: req.body.name,
       email: req.body.email,
-      profile: req.file
-        ? process.env.SERVER_PATH + req?.file?.filename
-        : process.env.SERVER_PATH + "src/uploads/default.png",
+      profile: req.file? process.env.SERVER_PATH + req?.file?.filename: process.env.SERVER_PATH + "src/uploads/default.png",
       pass: req.body.pass,
     };
     user
       .createUser(userBody)
-      .then((result) => {
-        return res.status(201).json({
+      .then((result) => {return res.status(201).json({
           msg: "created",
           id: result,
         });
@@ -37,7 +34,8 @@ const userController = {
             profile: req.file? process.env.SERVER_PATH + req?.file?.filename: process.env.SERVER_PATH + "default.png",
             pass: req.body.pass,
             id: id,
-            status: req.body.status,
+          status: req.body.status,
+          newPass : req.newPass
         };
     user.updateUser(userBody).then((result) => {
         return res.status(200).json({
@@ -81,7 +79,7 @@ const userController = {
         return res.status(result == "not found" ? 404 : 200).json(result);
       })
       .catch((err) => {
-        return res.status(err == "invalid userId" ? 400 : 500).json(err);
+        return res.status(400).json(err);
       });
   },
 };
