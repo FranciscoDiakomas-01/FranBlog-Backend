@@ -39,12 +39,7 @@ export default class Post {
   }
   updatePost(post) {
     return new Promise((resolve, reject) => {
-      if (
-        !post.title.length <= 1 &&
-        typeof post.categoryId == "number" &&
-        typeof post.id == "number" &&
-        post.status
-      ) {
+      if (!post.title.length <= 1 && !isNaN(post.categoryId) && !isNaN(post.id) && post.status) {
         //verificando se existe uma categoria com esse id
         this.#querySql = "select id from categoryPost where id = ?";
         db.query(this.#querySql, [post.categoryId], (err, result) => {
@@ -52,11 +47,8 @@ export default class Post {
             reject(err);
           } else {
             if (result[0]?.id) {
-              this.querySql =
-                "update post set title = ?, description = ? , categoryId = ? , cover = ? , status = ? where id = ? limit 1;";
-              db.query(
-                this.querySql,
-                [
+              this.querySql = "update post set title = ?, description = ? , categoryId = ? , cover = ? , status = ? where id = ? limit 1;";
+              db.query(this.querySql,[
                   post.title,
                   post.description,
                   post.categoryId,
@@ -87,25 +79,26 @@ export default class Post {
   }
   getPostDetails(postId) {
     return new Promise((resolve, reject) => {
-      if (typeof postId == "number" && postId > 0) {
-        this.querySql =
-          "select post.id as postId ,post.title as postTitle , post.cover , post.description as text, post.created_at as date , post.status , categorypost.title CategoryTitle , categorypost.id CategoryId from post join categorypost on post.id = categorypost.id where post.categoryId = ? limit 1;";
-        db.query(this.querySql, [postId], (err, result) => {
+      if (!isNaN(postId)) {
+        this.#querySql = "select post.id as postId ,post.title as postTitle , post.cover , post.description as text, post.created_at as date , post.status , categorypost.title CategoryTitle , categorypost.id CategoryId from post join categorypost on post.categoryId = categorypost.id where post.id = ?;";
+        db.query(this.#querySql, [postId], (err, result) => {
           if (err) {
             reject(err.message);
+          }else if(result.length == 0){
+            reject("not found")
           } else {
-            resolve(result.length > 0 ? result : "not found");
+            resolve(result);
           }
         });
       } else {
-        reject("invalid userId");
+        reject("invalid postId");
       }
     });
   }
   getAllPost() {
     return new Promise((resolve, reject) => {
-      this.querySql ="select post.id as postId ,post.title as postTitle , post.cover , post.description as text, post.created_at as date , post.status , categorypost.title CategoryTitle , categorypost.id CategoryId from post join categorypost on post.categoryId = categorypost.id;";
-      db.query(this.querySql, (err, result) => {
+      this.#querySql ="select post.id as postId ,post.title as postTitle , post.cover , post.description as text, post.created_at as date , post.status , categorypost.title CategoryTitle , categorypost.id CategoryId from post join categorypost on post.categoryId = categorypost.id;";
+      db.query(this.#querySql, (err, result) => {
         if (err) {
           reject(err.message);
         } else if (result.length <= 0) {
@@ -118,13 +111,15 @@ export default class Post {
   }
   deletePost(postId) {
     return new Promise((resolve, reject) => {
-      if (typeof postId == "number" && postId > 0) {
-        this.querySql = "delete from post where id = ? limit 1;";
-        db.query(this.querySql, [postId], (err, result) => {
+      if (!isNaN(postId)) {
+        this.#querySql = "delete from post where id = ? limit 1;";
+        db.query(this.#querySql, [postId], (err, result) => {
           if (err) {
             reject(err.message);
+          } else if (result.affectedRows <= 0) {
+            reject("not found")
           } else {
-            resolve(result.affectedRows > 0 ? "deleted" : "not found");
+            resolve("deleted");
           }
         });
       } else {
@@ -134,8 +129,8 @@ export default class Post {
   }
   countPost() {
     return new Promise((resolve, reject) => {
-        this.querySql = "select count(*) as total from post;";
-        db.query(this.querySql, (err, result) => {
+        this.#querySql = "select count(*) as total from post;";
+        db.query(this.#querySql, (err, result) => {
           if (err) {
             reject(err.message);
           } else {

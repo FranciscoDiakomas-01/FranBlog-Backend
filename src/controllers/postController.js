@@ -5,6 +5,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 const Post = new PostModel();
 const PostController = {
+  
     register(req, res) {
       const body = {
         title: req.body.title,
@@ -87,22 +88,44 @@ const PostController = {
   },
   deleteOne(req, res) {
     const id = req.params.id;
+    //primeiro selecionar no banco de dados o post e depois eliminar o arquivo na pasta uploads
     if (isNaN(id)) {
       return res.status(400).json({
         error: "invalid category Id",
       });
     }
-    Post.deletePost(id)
-      .then((data) => {
-        return res.status(201).json({
-          data,
-        });
+    Post.getPostDetails(id).then(response => {
+      const postFile = response[0].cover
+      fs.readdir(path.join(process.cwd() + '/src/uploads'), (errorFiles, files) => {
+        if (errorFiles) {
+          console.log(errorFiles)
+          return
+        } else {
+          files.forEach(file => {
+            //eliminando o arquivo que bate com o perfill do usuário
+            if (postFile == process.env.SERVER_PATH + file) {
+              fs.unlinkSync(path.join(process.cwd() + '/src/uploads/' + file))
+              //deletar no banco de dados
+              Post.deletePost(id)
+                .then((data) => {
+                  return res.status(201).json({
+                    data,
+                  });
+                })
+                .catch((err) => {
+                  res.status(400).json({
+                    err,
+                  });
+                });
+            }
+          })
+        }
       })
-      .catch((err) => {
+    }).catch(err => {
         res.status(400).json({
-          err,
-        });
-      });
+        err
+      })
+    })
   },
 };
 
